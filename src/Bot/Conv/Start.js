@@ -25,13 +25,9 @@ export default class Demo_Back_Bot_Conv_Start {
     ) {
         return async (conversation, ctx) => {
             try {
-                const sess = conversation.session;
-                sess.count = sess.count ?? 0;
-                sess.count++;
                 const telegramId = ctx.from.id;
                 const username = ctx.from.username;
                 let msg = `Hi @${username}!\n`;
-                logger.info(`username: ${username}, count: ${sess.count}`);
 
                 // 1. Check if the user is registered
                 let user = await modUser.read({telegramId}); // read user on every message in dialog
