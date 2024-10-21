@@ -1,11 +1,11 @@
 {
-  "name": "@flancer32/repo-tmpl-tg-bot",
+  "name": "@flancer64/tg-demo-all",
   "version": "0.1.0",
   "type": "module",
   "description": "A simple Telegram bot built with the grammY library.",
-  "homepage": "https://github.com/flancer32/repo-tmpl-tg-bot/",
+  "homepage": "https://github.com/flancer64/tg-demo-all/",
   "bugs": {
-    "url": "https://github.com/flancer32/repo-tmpl-tg-bot/issues",
+    "url": "https://github.com/flancer64/tg-demo-all/issues",
     "email": "alex@flancer64.com"
   },
   "license": "Apache-2.0",
@@ -14,8 +14,10 @@
     "email": "alex@flancer64.com",
     "url": "https://github.com/flancer64"
   },
-  "repository": "github:flancer32/repo-tmpl-tg-bot",
+  "repository": "github:flancer64/tg-demo-all",
   "scripts": {
+    "db-init": "node ./bin/tequila.mjs db-init",
+    "db-reset": "node ./bin/tequila.mjs db-export -f ./var/data.json && node ./bin/tequila.mjs db-init && node ./bin/tequila.mjs db-import -f ./var/data.json ",
     "help": "node ./bin/tequila.mjs -h",
     "start": "node ./bin/tequila.mjs tg-bot-start",
     "stop": "node ./bin/tequila.mjs tg-bot-stop",
@@ -24,7 +26,13 @@
     "web-stop": "node ./bin/tequila.mjs web-server-stop"
   },
   "dependencies": {
-    "@flancer32/teq-telegram-bot": "github:flancer32/teq-telegram-bot"
+    "@flancer32/teq-telegram-bot": "github:flancer32/teq-telegram-bot",
+    "@grammyjs/conversations": "^1.2.0",
+    "@teqfw/db": "^0.22.1",
+    "better-sqlite3": "^11.3.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@teqfw/test": "^0.20.1",
+    "mocha": "^10.7.3"
+  }
 }

@@ -1,13 +1,13 @@
 /**
  * The handler for the 'help' command.
  */
-export default class Ns_App_Back_Bot_Cmd_Help {
+export default class Demo_Back_Bot_Cmd_Help {
     /**
-     * @param {typeof Ns_App_Back_Enum_Bot_Command} CMD
+     * @param {typeof Demo_Back_Enum_Bot_Command} CMD
      */
     constructor(
         {
-            Ns_App_Back_Enum_Bot_Command$: CMD,
+            Demo_Back_Enum_Bot_Command$: CMD,
         }
     ) {
         return async (ctx) => {
