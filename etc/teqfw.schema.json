@@ -1,22 +1,71 @@
 {
   "entity": {
-    "user": {
-      "comment": "The registry of the Telegram users.",
+    "service": {
+      "comment": "Registry of available services for subscription.",
       "attr": {
         "id": {"type": "id"},
-        "telegram_id": {"type": "integer", "comment": "The reference to the user in Telegram."},
-        "telegram_user": {"type": "string", "comment": "User name from Telegram."},
-        "name_first": {"type": "string", "comment": "The first name from Telegram."},
-        "name_last": {"type": "string", "comment": "The last name from Telegram."},
-        "language": {"type": "string", "comment": "The language code from Telegram."},
+        "name": {"type": "string", "comment": "Name of the service."},
+        "description": {"type": "text", "comment": "Detailed description of the service."},
+        "date_created": {
+          "comment": "Date and time when the service was created.",
+          "type": "datetime",
+          "default": "current"
+        }
+      },
+      "index": {
+        "name": {"type": "unique", "attrs": ["name"]}
+      }
+    },
+    "user": {
+      "comment": "Registry of Telegram users.",
+      "attr": {
+        "id": {"type": "id"},
+        "telegram_id": {"type": "integer", "comment": "Reference to the user in Telegram."},
+        "telegram_user": {"type": "string", "comment": "Username from Telegram."},
+        "name_first": {"type": "string", "comment": "First name from Telegram."},
+        "name_last": {"type": "string", "comment": "Last name from Telegram."},
+        "language": {"type": "string", "comment": "Language code from Telegram."},
         "date_registered": {
-          "comment": "Date-time when record was created.",
+          "comment": "Date and time when the record was created.",
           "type": "datetime",
           "default": "current"
         }
       },
       "index": {
         "telegram_id": {"type": "unique", "attrs": ["telegram_id"]}
+      }
+    }
+  },
+  "package": {
+    "user": {
+      "entity": {
+        "subscription": {
+          "comment": "User subscriptions to services.",
+          "attr": {
+            "service_ref": {"type": "ref"},
+            "user_ref": {"type": "ref"},
+            "date_created": {
+              "comment": "Date and time when the subscription was created.",
+              "type": "datetime",
+              "default": "current"
+            }
+          },
+          "index": {
+            "pk": {"type": "primary", "attrs": ["service_ref", "user_ref"]}
+          },
+          "relation": {
+            "user": {
+              "attrs": ["user_ref"],
+              "ref": {"path": "/user", "attrs": ["id"]},
+              "action": {"delete": "cascade", "update": "cascade"}
+            },
+            "service": {
+              "attrs": ["service_ref"],
+              "ref": {"path": "/service", "attrs": ["id"]},
+              "action": {"delete": "cascade", "update": "cascade"}
+            }
+          }
+        }
       }
     }
   }

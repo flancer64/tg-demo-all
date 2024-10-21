@@ -1,5 +1,5 @@
 /**
- * The model for User to manipulate with data in storages.
+ * The model for User to manipulate data in storage.
  *
  * @implements TeqFw_Core_Shared_Api_Model
  */
@@ -13,6 +13,7 @@ export default class Demo_Back_Mod_User {
      * @param {Demo_Back_Mod_User_A_Delete} aDelete
      * @param {Demo_Back_Mod_User_A_List} aList
      * @param {Demo_Back_Mod_User_A_Read} aRead
+     * @param {Demo_Back_Mod_User_A_Subscribe} aSubscribe
      * @param {Demo_Back_Mod_User_A_Update} aUpdate
      */
     constructor(
@@ -25,6 +26,7 @@ export default class Demo_Back_Mod_User {
             Demo_Back_Mod_User_A_Delete$: aDelete,
             Demo_Back_Mod_User_A_List$: aList,
             Demo_Back_Mod_User_A_Read$: aRead,
+            Demo_Back_Mod_User_A_Subscribe$: aSubscribe,
             Demo_Back_Mod_User_A_Update$: aUpdate,
         }
     ) {
@@ -50,12 +52,9 @@ export default class Demo_Back_Mod_User {
             try {
                 const {dbUser} = convUser.dom2db({user: dto});
                 const id = await aCreate.act({trx, dbUser});
-                {
-                    const {dbUser} = await aRead.act({trx, id});
-                    res = convUser.db2dom({dbUser});
-                }
-                // Create new user in the store
-                logger.info(`User ${res.telegramUser} created successfully (id:${dbUser.telegram_id}).`);
+                const {dbUser: createdUser} = await aRead.act({trx, id});
+                res = convUser.db2dom({dbUser: createdUser});
+                logger.info(`User ${res.telegramUser} created successfully (id:${createdUser.telegram_id}).`);
                 await trx.commit();
                 return res;
             } catch (error) {
@@ -66,7 +65,7 @@ export default class Demo_Back_Mod_User {
         };
 
         /**
-         * Create a user.
+         * Delete a user.
          * @param {Object} params
          * @param {Demo_Back_Dto_User.Dto} params.dto
          * @returns {Promise<boolean>}
@@ -89,7 +88,7 @@ export default class Demo_Back_Mod_User {
         };
 
         /**
-         * List all items.
+         * List all users.
          * @param {Object} [params]
          * @returns {Promise<Demo_Back_Dto_User_Item.Dto[]>}
          */
@@ -109,11 +108,11 @@ export default class Demo_Back_Mod_User {
         };
 
         /**
-         * Read user data by ID
-         * @param {Object} params - User data
-         * @param {number} [params.id] - User ID
-         * @param {number} [params.telegramId] - User ID
-         * @returns {Promise<Demo_Back_Dto_User.Dto>} - User DTO or null if not found
+         * Read user data by ID or Telegram ID.
+         * @param {Object} params - User data.
+         * @param {number} [params.id] - User ID.
+         * @param {number} [params.telegramId] - Telegram user ID.
+         * @returns {Promise<Demo_Back_Dto_User.Dto>} - User DTO or null if not found.
          */
         this.read = async function ({id, telegramId}) {
             let res;
@@ -125,7 +124,7 @@ export default class Demo_Back_Mod_User {
                     res = convUser.db2dom({dbUser});
                     logger.info(`User ${res.telegramUser} read successfully (id:${res.telegramId}).`);
                 } else {
-                    logger.info(`User with ID ${telegramId} not found.`);
+                    logger.info(`User with Telegram ID ${telegramId} not found.`);
                 }
                 return res;
             } catch (error) {
@@ -136,19 +135,39 @@ export default class Demo_Back_Mod_User {
         };
 
         /**
-         * Update user data
+         * Subscribe a user to a service.
+         * @param {number} serviceId - ID of the service.
+         * @param {number} userId - ID of the user.
+         * @return {Promise<boolean>}
+         */
+        this.subscribe = async function ({serviceId, userId}) {
+            let res;
+            const trx = await conn.startTransaction();
+            try {
+                res = await aSubscribe.act({trx, userId, serviceId});
+                await trx.commit();
+                return res;
+            } catch (error) {
+                await trx.rollback();
+                logger.error(`Error subscribing user to service: ${error.message}`);
+                throw error;
+            }
+        };
+
+        /**
+         * Update user data.
          * @param {Object} params
-         * @param {Demo_Back_Dto_User.Dto} params.dto
-         * @returns {Promise<Demo_Back_Dto_User.Dto>} - Updated user DTO or null if not found
+         * @param {Demo_Back_Dto_User.Dto} params.dto - User DTO containing updated data.
+         * @returns {Promise<Demo_Back_Dto_User.Dto>} - Updated user DTO or null if not found.
          */
         this.update = async function ({dto}) {
             let res;
             const trx = await conn.startTransaction();
             try {
-                // find a user to update
+                // Find the user to update
                 const {dbUser} = await aRead.act({trx, id: dto?.id, telegramId: dto?.telegramId});
                 if (dbUser) {
-                    // only name can be updated if found
+                    // Only update name fields if changed
                     if ((dbUser.name_first !== dto.nameFirst) || (dbUser.name_last !== dto.nameLast)) {
                         dbUser.name_first = dto.nameFirst;
                         dbUser.name_last = dto.nameLast;
@@ -157,7 +176,7 @@ export default class Demo_Back_Mod_User {
                     }
                     res = convUser.db2dom({dbUser});
                 } else {
-                    logger.info(`User with ID ${dto.telegramId} not found.`);
+                    logger.info(`User with Telegram ID ${dto.telegramId} not found.`);
                 }
                 await trx.commit();
                 return res;
