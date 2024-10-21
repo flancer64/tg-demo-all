@@ -25,21 +25,29 @@ export default class Demo_Back_Bot_Conv_Start {
     ) {
         return async (conversation, ctx) => {
             try {
+                const sess = conversation.session;
+                sess.count = sess.count ?? 0;
+                sess.count++;
                 const telegramId = ctx.from.id;
                 const username = ctx.from.username;
                 let msg = `Hi @${username}!\n`;
+                logger.info(`username: ${username}, count: ${sess.count}`);
 
                 // 1. Check if the user is registered
-                let user = await modUser.read({telegramId});
+                let user = await modUser.read({telegramId}); // read user on every message in dialog
                 if (!user) {
                     // 2. Register the user if not found
-                    const dto = modUser.composeEntity();
-                    dto.lang = ctx.from.language_code;
-                    dto.nameFirst = ctx.from.first_name;
-                    dto.nameLast = ctx.from.last_name;
-                    dto.telegramUser = username;
-                    dto.telegramId = telegramId;
-                    user = await modUser.create({dto}); // TODO: add external here
+                    user = await conversation.external(
+                        () => {
+                            const dto = modUser.composeEntity();
+                            dto.lang = ctx.from.language_code;
+                            dto.nameFirst = ctx.from.first_name;
+                            dto.nameLast = ctx.from.last_name;
+                            dto.telegramUser = username;
+                            dto.telegramId = telegramId;
+                            modUser.create({dto});
+                        }
+                    );
                     msg += `You are a new user and have been registered successfully.`;
                 } else {
                     msg += `You are already registered.`;
@@ -47,7 +55,7 @@ export default class Demo_Back_Bot_Conv_Start {
                 await ctx.reply(msg);
 
                 // 3. Show the list of available services
-                let services = await modService.list(); // TODO: add external
+                let services = await conversation.external(() => modService.list());
 
                 if (services.length === 0) {
                     await ctx.reply(`No services are currently available.`);
@@ -59,7 +67,11 @@ export default class Demo_Back_Bot_Conv_Start {
                         // Wait for user input
                         const response = await conversation.wait();
                         const id = parseInt(response.message.text);
-                        selected = await modService.read({id});
+                        selected = await conversation.external({
+                            task: (id) => modService.read({id}),
+                            args: [id]
+
+                        });
                         // Validate the service number
                         if (!selected) await ctx.reply(`Invalid selection. Please enter a valid service number.`);
                     } while (!selected);
@@ -81,7 +93,9 @@ Do you want to subscribe? (yes/no)
 
                         if (confirmationText === 'yes') {
                             // 5. Subscribe the user and finish the conversation
-                            const success = await modUser.subscribe({userId: user.id, serviceId: selected.id}); // TODO external
+                            const success = await conversation.external(
+                                () => modUser.subscribe({userId: user.id, serviceId: selected.id})
+                            );
                             msg = success
                                 ? `You have been successfully subscribed to "${selected.name}".`
                                 : `An error occurred during the subscription process.`;

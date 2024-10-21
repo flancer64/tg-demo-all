@@ -67,7 +67,7 @@ export default class Demo_Back_Bot_Setup {
                         logger.info(`An active conversation exists.`);
                         const commandEntity = ctx.message?.entities?.find(entity => entity.type === 'bot_command');
                         if (commandEntity) {
-                            await ctx.conversation.exit();
+                            await ctx.conversation.exit(CONV.START);
                             await ctx.reply(`The previous conversation has been closed.`);
                         }
                     }
