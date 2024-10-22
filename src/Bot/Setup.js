@@ -1,5 +1,5 @@
 /**
- * Display the messages about the processing of an API request.
+ * Sets up command registration and conversation handling for the Telegram bot.
  */
 // IMPORTS
 
