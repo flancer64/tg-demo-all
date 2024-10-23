@@ -34,46 +34,53 @@ export default class Demo_Back_Bot_Conv_Start {
                 if (!user) {
                     // 2. Register the user if not found
                     user = await conversation.external(
-                        () => {
-                            const dto = modUser.composeEntity();
-                            dto.lang = ctx.from.language_code;
-                            dto.nameFirst = ctx.from.first_name;
-                            dto.nameLast = ctx.from.last_name;
-                            dto.telegramUser = username;
-                            dto.telegramId = telegramId;
-                            modUser.create({dto});
+                        async () => {
+                            try {
+                                const dto = modUser.composeEntity();
+                                dto.lang = ctx.from.language_code;
+                                dto.nameFirst = ctx.from.first_name;
+                                dto.nameLast = ctx.from.last_name;
+                                dto.telegramUser = username;
+                                dto.telegramId = telegramId;
+                                return await modUser.create({dto}); // Ensure async/await for user creation
+                            } catch (e) {
+                                logger.error('Error during user registration:', e); // Use logger.error for non-fatal errors
+                                throw e; // Rethrow the error after logging it
+                            }
                         }
                     );
-                    msg += `You are a new user and have been registered successfully.`;
+                    msg += (user)
+                        ? 'You are a new user and have been registered successfully.'
+                        : 'I cannot register you at this time.';
                 } else {
                     msg += `You are already registered.`;
                 }
                 await ctx.reply(msg);
+                if (user) {
+                    // 3. Show the list of available services
+                    let services = await conversation.external(async () => modService.list());
 
-                // 3. Show the list of available services
-                let services = await conversation.external(() => modService.list());
+                    if (services.length === 0) {
+                        await ctx.reply(`No services are currently available.`);
+                    } else {
+                        let list = services.map((service) => `${service.id}: ${service.name}`).join('\n');
+                        await ctx.reply(`Please select a service by number:\n${list}`);
+                        let selected;
+                        do {
+                            // Wait for user input
+                            const response = await conversation.wait();
+                            const id = parseInt(response.message.text);
+                            selected = await conversation.external({
+                                task: async (id) => modService.read({id}),
+                                args: [id]
 
-                if (services.length === 0) {
-                    await ctx.reply(`No services are currently available.`);
-                } else {
-                    let list = services.map((service) => `${service.id}: ${service.name}`).join('\n');
-                    await ctx.reply(`Please select a service by number:\n${list}`);
-                    let selected;
-                    do {
-                        // Wait for user input
-                        const response = await conversation.wait();
-                        const id = parseInt(response.message.text);
-                        selected = await conversation.external({
-                            task: (id) => modService.read({id}),
-                            args: [id]
+                            });
+                            // Validate the service number
+                            if (!selected) await ctx.reply(`Invalid selection. Please enter a valid service number.`);
+                        } while (!selected);
 
-                        });
-                        // Validate the service number
-                        if (!selected) await ctx.reply(`Invalid selection. Please enter a valid service number.`);
-                    } while (!selected);
-
-                    // 4. Print service details and ask for confirmation
-                    msg = `Service details:
+                        // 4. Print service details and ask for confirmation
+                        msg = `Service details:
                     
 ID: ${selected.id}
 Name: ${selected.name}
@@ -81,31 +88,31 @@ Description: ${selected.description}
 
 Do you want to subscribe? (yes/no)
 `;
-                    await ctx.reply(msg);
-                    let confirmed = false;
-                    while (!confirmed) {
-                        const confirmation = await conversation.wait();
-                        const confirmationText = confirmation.message.text.toLowerCase();
+                        await ctx.reply(msg);
+                        let confirmed = false;
+                        while (!confirmed) {
+                            const confirmation = await conversation.wait();
+                            const confirmationText = confirmation.message.text.toLowerCase();
 
-                        if (confirmationText === 'yes') {
-                            // 5. Subscribe the user and finish the conversation
-                            const success = await conversation.external(
-                                () => modUser.subscribe({userId: user.id, serviceId: selected.id})
-                            );
-                            msg = success
-                                ? `You have been successfully subscribed to "${selected.name}".`
-                                : `An error occurred during the subscription process.`;
-                            await ctx.reply(msg);
-                            confirmed = true;
-                        } else if (confirmationText === 'no') {
-                            await ctx.reply(`Subscription canceled. You can start again by using /start.`);
-                            confirmed = true;
-                        } else {
-                            await ctx.reply(`Please respond with "yes" or "no".`);
+                            if (confirmationText === 'yes') {
+                                // 5. Subscribe the user and finish the conversation
+                                const success = await conversation.external(
+                                    async () => modUser.subscribe({userId: user.id, serviceId: selected.id})
+                                );
+                                msg = success
+                                    ? `You have been successfully subscribed to "${selected.name}".`
+                                    : `An error occurred during the subscription process.`;
+                                await ctx.reply(msg);
+                                confirmed = true;
+                            } else if (confirmationText === 'no') {
+                                await ctx.reply(`Subscription canceled. You can start again by using /start.`);
+                                confirmed = true;
+                            } else {
+                                await ctx.reply(`Please respond with "yes" or "no".`);
+                            }
                         }
                     }
                 }
-
                 await ctx.reply(`The /start conversation has been completed.`);
             } catch (e) {
                 await ctx.reply(`An error occurred while processing your request: ${e.message}`);

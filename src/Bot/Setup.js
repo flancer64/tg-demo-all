@@ -42,6 +42,11 @@ export default class Demo_Back_Bot_Setup {
         };
 
         this.handlers = function (bot) {
+            // TODO: improve it
+            bot.catch((err) => {
+                logger.error('An error occurred:', err);
+            });
+
             // Middleware for logging
             bot.use(async (ctx, next) => {
                 const message = ctx.message;
@@ -56,6 +61,17 @@ export default class Demo_Back_Bot_Setup {
             });
 
             // Middleware for conversations
+
+            // TODO: improve it
+            bot.use(async (ctx, next) => {
+                try {
+                    await next();
+                } catch (err) {
+                    logger.error('An error occurred during middleware execution:', err);
+                    await ctx.reply('An internal error occurred. Please try again later.');
+                }
+            });
+
             bot.use(session({initial: () => ({})}));
             bot.use(conversations());
 
