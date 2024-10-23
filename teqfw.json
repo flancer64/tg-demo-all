@@ -5,8 +5,8 @@
       "path": "./src"
     },
     "replaces": {
-      "Telegram_Bot_Back_Api_Setup": {
-        "back": "Demo_Back_Bot_Setup"
+      "back": {
+        "Telegram_Bot_Back_Api_Setup": "Demo_Back_Bot_Setup"
       }
     }
   }
