@@ -2,7 +2,7 @@
  * RDB query builder to select users.
  * @see Events_Back_Act_User_Create_A_Query (has been copied from)
  */
-export default class Demo_Back_Mod_Visit_A_List_A_Query {
+export default class Demo_Back_Mod_User_A_List_A_Query {
     /**
      * @param {TeqFw_Db_Back_RDb_IConnect} conn
      * @param {Demo_Back_Store_RDb_Schema_User} rdbUser
@@ -23,7 +23,7 @@ export default class Demo_Back_Mod_Visit_A_List_A_Query {
 
         /**
          * Aliases for the columns in the query.
-         * @memberof Demo_Back_Mod_Visit_A_List_A_Query
+         * @memberof Demo_Back_Mod_User_A_List_A_Query
          */
         const COL = dtoItem.getAttributes();
         Object.freeze(COL);
@@ -31,7 +31,7 @@ export default class Demo_Back_Mod_Visit_A_List_A_Query {
         /**
          * Map for tables aliases in the query.
          * @type {Object}
-         * @memberOf Demo_Back_Mod_Visit_A_List_A_Query
+         * @memberOf Demo_Back_Mod_User_A_List_A_Query
          */
         const TBL = {
             USER: 'u',
@@ -89,13 +89,13 @@ export default class Demo_Back_Mod_Visit_A_List_A_Query {
 
         /**
          * Get query columns (field's aliases).
-         * @return {typeof Demo_Back_Mod_Visit_A_List_A_Query.COL}
+         * @return {typeof Demo_Back_Mod_User_A_List_A_Query.COL}
          */
         this.getColumns = () => COL;
 
         /**
          *
-         * @returns {typeof Demo_Back_Mod_Visit_A_List_A_Query.TBL}
+         * @returns {typeof Demo_Back_Mod_User_A_List_A_Query.TBL}
          */
         this.getTables = () => TBL;
 
