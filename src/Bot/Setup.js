@@ -10,6 +10,7 @@
 export default class Demo_Back_Bot_Setup {
     /**
      * @param {TeqFw_Core_Shared_Api_Logger} logger -  instance
+     * @param {Telegram_Bot_Back_Mod_Mdlwr_Log} mwFactLog
      * @param {Demo_Back_Bot_Cmd_Help} cmdHelp
      * @param {Demo_Back_Bot_Cmd_Settings} cmdSettings
      * @param {Demo_Back_Bot_Cmd_Start} cmdStart
@@ -19,6 +20,7 @@ export default class Demo_Back_Bot_Setup {
     constructor(
         {
             TeqFw_Core_Shared_Api_Logger$$: logger,
+            Telegram_Bot_Back_Mod_Mdlwr_Log$: mwFactLog,
             Demo_Back_Bot_Cmd_Help$: cmdHelp,
             Demo_Back_Bot_Cmd_Settings$: cmdSettings,
             Demo_Back_Bot_Cmd_Start$: cmdStart,
@@ -28,29 +30,15 @@ export default class Demo_Back_Bot_Setup {
     ) {
         // INSTANCE METHODS
         this.commands = async function (bot) {
-            bot.api.setMyCommands([
+            await bot.api.setMyCommands([
                 {command: CMD.HELP, description: 'Get help.'},
                 {command: CMD.SETTINGS, description: 'Configure bot settings.'},
                 {command: CMD.START, description: 'Start using the bot.'},
             ]);
             logger.info(`A total of ${Object.keys(CMD).length} commands have been set for the bot.`);
-            return bot;
         };
 
-        this.handlers = function (bot) {
-            // middleware
-            bot.use(async (ctx, next) => {
-                const message = ctx.message;
-                if (message) {
-                    const user = message.from.username;
-                    const userId = message.from.id;
-                    const msgId = message.message_id;
-                    const chatId = message.chat.id;
-                    logger.info(`[${chatId}][${msgId}][${user}][${userId}] ${message?.text}`);
-                }
-                await next();
-            });
-
+        this.handlers = async function (bot) {
             // command handlers
             bot.command(CMD.HELP, cmdHelp);
             bot.command(CMD.SETTINGS, cmdSettings);
@@ -58,7 +46,11 @@ export default class Demo_Back_Bot_Setup {
 
             // other filters
             bot.on('message', filterMessage);
-            return bot;
+        };
+
+        this.middleware = async function (bot) {
+            // Uses the factory to create middleware for logging user messages and intercepting middleware exceptions.
+            bot.use(mwFactLog.create());
         };
     }
 }
