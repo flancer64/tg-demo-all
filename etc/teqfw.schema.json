@@ -20,18 +20,13 @@
       "comment": "Registry of Telegram users.",
       "attr": {
         "id": {"type": "id"},
-        "telegram_id": {"type": "integer", "comment": "Reference to the user in Telegram."},
-        "telegram_user": {"type": "string", "comment": "Username from Telegram."},
-        "name_first": {"type": "string", "comment": "First name from Telegram.", "nullable": true},
-        "name_last": {"type": "string", "comment": "Last name from Telegram.", "nullable": true},
-        "language": {"type": "string", "comment": "Language code from Telegram.", "default": "en"},
         "telegram_id": {"type": "integer", "comment": "The reference to the user in Telegram."},
         "telegram_user": {"type": "string", "comment": "User name from Telegram."},
         "name_first": {"type": "string", "comment": "The first name from Telegram.", "nullable": true},
         "name_last": {"type": "string", "comment": "The last name from Telegram.", "nullable": true},
         "language": {"type": "string", "comment": "The language code from Telegram.", "default": "en"},
         "date_registered": {
-          "comment": "Date and time when the record was created.",
+          "comment": "Date-time when record was created.",
           "type": "datetime",
           "default": "current"
         }
