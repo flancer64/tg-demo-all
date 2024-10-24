@@ -26,13 +26,13 @@
     "web-stop": "node ./bin/tequila.mjs web-server-stop"
   },
   "dependencies": {
-    "@flancer32/teq-telegram-bot": "github:flancer32/teq-telegram-bot",
+    "@flancer32/teq-telegram-bot": ">=0.2.0 <1.0.0",
     "@grammyjs/conversations": "^1.2.0",
-    "@teqfw/db": "^0.22.1",
+    "@teqfw/db": ">=0.22.1 <1.0.0",
     "better-sqlite3": "^11.3.0"
   },
   "devDependencies": {
-    "@teqfw/test": "^0.20.1",
+    "@teqfw/test": ">=0.21.0 <1.0.0",
     "mocha": "^10.7.3"
   }
 }
