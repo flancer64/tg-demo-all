@@ -11,7 +11,8 @@ import {conversations, createConversation} from '@grammyjs/conversations';
  */
 export default class Demo_Back_Bot_Setup {
     /**
-     * @param {TeqFw_Core_Shared_Api_Logger} logger
+     * @param {TeqFw_Core_Shared_Api_Logger} logger -  instance
+     * @param {Telegram_Bot_Back_Mod_Mdlwr_Log} mwFactLog
      * @param {Demo_Back_Bot_Cmd_Help} cmdHelp
      * @param {Demo_Back_Bot_Cmd_Settings} cmdSettings
      * @param {Demo_Back_Bot_Cmd_Start} cmdStart
@@ -32,15 +33,16 @@ export default class Demo_Back_Bot_Setup {
                 }) {
         // INSTANCE METHODS
         this.commands = async function (bot) {
-            bot.api.setMyCommands([
+            await bot.api.setMyCommands([
                 {command: CMD.HELP, description: 'Get help.'},
                 {command: CMD.SETTINGS, description: 'Configure bot settings.'},
                 {command: CMD.START, description: 'Start using the bot.'},
             ]);
-            logger.info(`A total of ${Object.keys(CMD).length} commands have been set up for the bot.`);
-            return bot;
+            logger.info(`A total of ${Object.keys(CMD).length} commands have been set for the bot.`);
         };
 
+        this.handlers = async function (bot) {
+            // command handlers
         this.handlers = function (bot) {
             // TODO: improve it
             bot.catch((err) => {
@@ -99,9 +101,13 @@ export default class Demo_Back_Bot_Setup {
             bot.command(CMD.SETTINGS, cmdSettings);
             bot.command(CMD.START, cmdStart);
 
-            // Other filters
+            // other filters
             bot.on('message', filterMessage);
-            return bot;
+        };
+
+        this.middleware = async function (bot) {
+            // Uses the factory to create middleware for logging user messages and intercepting middleware exceptions.
+            bot.use(mwFactLog.create());
         };
     }
 }
