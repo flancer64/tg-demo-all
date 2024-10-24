@@ -45,38 +45,20 @@ export default class Demo_Back_Bot_Setup {
         };
 
         this.handlers = async function (bot) {
-            // command handlers
-        this.handlers = function (bot) {
-            // TODO: improve it
-            bot.catch((err) => {
-                logger.error('An error occurred:', err);
-            });
+            // Command handlers
+            bot.command(CMD.HELP, cmdHelp);
+            bot.command(CMD.SETTINGS, cmdSettings);
+            bot.command(CMD.START, cmdStart);
 
-            // Middleware for logging
-            bot.use(async (ctx, next) => {
-                const message = ctx.message;
-                if (message) {
-                    const user = message.from.username;
-                    const userId = message.from.id;
-                    const msgId = message.message_id;
-                    const chatId = message.chat.id;
-                    logger.info(`[${chatId}][${msgId}][${user}][${userId}] ${message?.text}`);
-                }
-                await next();
-            });
+            // other filters
+            bot.on('message', filterMessage);
+        };
+
+        this.middleware = async function (bot) {
+            // Uses the factory to create middleware for logging user messages and intercepting middleware exceptions.
+            bot.use(mwFactLog.create());
 
             // Middleware for conversations
-
-            // TODO: improve it
-            bot.use(async (ctx, next) => {
-                try {
-                    await next();
-                } catch (err) {
-                    logger.error('An error occurred during middleware execution:', err);
-                    await ctx.reply('An internal error occurred. Please try again later.');
-                }
-            });
-
             bot.use(session({initial: () => ({})}));
             bot.use(conversations());
 
@@ -98,19 +80,6 @@ export default class Demo_Back_Bot_Setup {
 
             // Set up conversations
             bot.use(createConversation(convStart, CONV.START));
-
-            // Command handlers
-            bot.command(CMD.HELP, cmdHelp);
-            bot.command(CMD.SETTINGS, cmdSettings);
-            bot.command(CMD.START, cmdStart);
-
-            // other filters
-            bot.on('message', filterMessage);
-        };
-
-        this.middleware = async function (bot) {
-            // Uses the factory to create middleware for logging user messages and intercepting middleware exceptions.
-            bot.use(mwFactLog.create());
         };
     }
 }
